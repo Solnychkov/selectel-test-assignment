@@ -65,22 +65,22 @@ async def upsert_external_vacancies(
     external_ids = [
         payload["external_id"] for payload in payloads if payload["external_id"]
     ]
-    if external_ids:
-        existing_result = await session.execute(
-            select(Vacancy.external_id).where(Vacancy.external_id.in_(external_ids))
-        )
-        existing_ids = set(existing_result.scalars().all())
-    else:
-        existing_ids = {}
+    if not external_ids:
+        await session.commit()
+        return 0
+
+    existing_result = await session.execute(
+        select(Vacancy).where(Vacancy.external_id.in_(external_ids))
+    )
+    existing_vacancies = {
+        vacancy.external_id: vacancy for vacancy in existing_result.scalars().all()
+    }
 
     created_count = 0
     for payload in payloads:
         ext_id = payload["external_id"]
-        if ext_id and ext_id in existing_ids:
-            result = await session.execute(
-                select(Vacancy).where(Vacancy.external_id == ext_id)
-            )
-            vacancy = result.scalar_one()
+        if ext_id and ext_id in existing_vacancies:
+            vacancy = existing_vacancies[ext_id]
             for field, value in payload.items():
                 setattr(vacancy, field, value)
         else:
