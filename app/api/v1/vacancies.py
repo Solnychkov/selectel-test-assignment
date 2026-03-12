@@ -1,7 +1,6 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.vacancy import (
@@ -46,13 +45,14 @@ async def get_vacancy_endpoint(
 async def create_vacancy_endpoint(
     payload: VacancyCreate, session: AsyncSession = Depends(get_session)
 ) -> VacancyRead:
-    if payload.external_id is not None:
-        existing = await get_vacancy_by_external_id(session, payload.external_id)
-        if existing:
-            return JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={"detail": "Vacancy with external_id already exists"},
-            )
+    if payload.external_id is not None and await get_vacancy_by_external_id(
+        session, payload.external_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Vacancy with external_id already exists",
+        )
+
     return await create_vacancy(session, payload)
 
 
