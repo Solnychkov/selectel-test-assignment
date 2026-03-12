@@ -62,7 +62,9 @@ async def delete_vacancy(session: AsyncSession, vacancy: Vacancy) -> None:
 async def upsert_external_vacancies(
     session: AsyncSession, payloads: Iterable[dict]
 ) -> int:
-    external_ids = [payload["external_id"] for payload in payloads if payload["external_id"]]
+    external_ids = [
+        payload["external_id"] for payload in payloads if payload["external_id"]
+    ]
     if external_ids:
         existing_result = await session.execute(
             select(Vacancy.external_id).where(Vacancy.external_id.in_(external_ids))

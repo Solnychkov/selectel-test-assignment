@@ -1,5 +1,4 @@
 import logging
-from typing import List
 
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,12 +9,10 @@ from app.schemas.external import ExternalVacanciesResponse
 
 logger = logging.getLogger(__name__)
 
-API_URL = "https://api.selectel.ru/proxy/public/employee/api/public/vacancies"
-
 
 async def fetch_page(client: httpx.AsyncClient, page: int) -> ExternalVacanciesResponse:
     response = await client.get(
-        API_URL,
+        settings.API_URL,
         params={"per_page": 1000, "page": page},
     )
     response.raise_for_status()
@@ -40,7 +37,7 @@ async def parse_and_store(session: AsyncSession) -> int:
                         "title": item.title,
                         "timetable_mode_name": item.timetable_mode.name,
                         "tag_name": item.tag.name,
-                        "city_name": item.city.name.strip(),
+                        "city_name": item.city.name if item.city else None,
                         "published_at": item.published_at,
                         "is_remote_available": item.is_remote_available,
                         "is_hot": item.is_hot,

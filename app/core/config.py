@@ -9,6 +9,8 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
+    API_URL: str = "https://api.selectel.ru/proxy/public/employee/api/public/vacancies"
+
     database_url: str = Field(
         "postgresql+asyncpg://postgres:postgres@db:5432/postgres",
         validation_alias="DATABASE_URL",

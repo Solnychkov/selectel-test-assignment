@@ -9,11 +9,8 @@ from app.db.session import async_session_maker
 from app.services.parser import parse_and_store
 from app.services.scheduler import create_scheduler
 
-logger = logging.getLogger(__name__)
-
 setup_logging()
-
-_scheduler = None
+logger = logging.getLogger(__name__)
 
 
 async def _run_parse_job() -> None:
@@ -36,7 +33,6 @@ async def lifespan(app: FastAPI):
 
     scheduler = create_scheduler(_run_parse_job)
     scheduler.start()
-
     app.state.scheduler = scheduler
 
     yield
@@ -45,5 +41,5 @@ async def lifespan(app: FastAPI):
     scheduler.shutdown(wait=False)
 
 
-app = FastAPI(title="Selectel Vacancies API")
+app = FastAPI(title="Selectel Vacancies API", lifespan=lifespan)
 app.include_router(api_router)
